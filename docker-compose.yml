@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  identity-service:
+    build:
+      context: ./services/identity-service
+    ports:
+      - "15001:15001"
+    volumes:
+      - ./services/identity-service:/app
+    env_file:
+      - ./services/identity-service/.env
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "15173:15173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    env_file:
+      - ./frontend/.env
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+    ports:
+      - "15000:15000"
+    depends_on:
+      - identity-service
+      - frontend

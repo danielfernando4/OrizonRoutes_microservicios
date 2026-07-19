@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+pydantic[email]
+pydantic-settings
+passlib
+PyJWT
+pytest
+httpx
+ruff
+python-dotenv
