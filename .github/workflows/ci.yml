@@ -42,7 +42,7 @@ jobs:
         run: |
           cd services/${{ matrix.service }}
           # Ejecuta pytest solo si la carpeta tests/ existe
-          if [ -d "tests" ]; then pytest tests/ -v; else echo "No hay tests configurados para ${{ matrix.service }} aún."; fi
+          if [ -d "tests" ]; then PYTHONPATH=. pytest tests/ -v; else echo "No hay tests configurados para ${{ matrix.service }} aún."; fi
 
   frontend-ci:
     name: Frontend CI (Linters & Build)
