@@ -10,6 +10,32 @@ services:
       - ./services/identity-service:/app
     env_file:
       - ./services/identity-service/.env
+    restart: unless-stopped
+
+  db_booking:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: db_booking
+    ports:
+      - "15432:5432"
+    volumes:
+      - db_booking_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  booking-service:
+    build:
+      context: ./services/booking-service
+    ports:
+      - "15003:8003"
+    volumes:
+      - ./services/booking-service:/app
+    env_file:
+      - ./services/booking-service/.env
+    depends_on:
+      - db_booking
+    restart: unless-stopped
 
   frontend:
     build:
@@ -21,6 +47,7 @@ services:
       - /app/node_modules
     env_file:
       - ./frontend/.env
+    restart: unless-stopped
 
   api-gateway:
     build:
@@ -29,4 +56,9 @@ services:
       - "15000:15000"
     depends_on:
       - identity-service
+      - booking-service
       - frontend
+    restart: unless-stopped
+
+volumes:
+  db_booking_data:

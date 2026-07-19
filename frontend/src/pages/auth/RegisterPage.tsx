@@ -9,7 +9,7 @@ export default function RegisterPage() {
     name: '',
     email: '',
     plain_password: '',
-    role: 'PASAJERO'
+    role: 'pasajero'
   });
   const navigate = useNavigate();
 
@@ -92,8 +92,8 @@ export default function RegisterPage() {
                 value={formData.role}
                 onChange={(e) => setFormData({...formData, role: e.target.value})}
               >
-                <option value="PASAJERO">Soy Pasajero</option>
-                <option value="CONDUCTOR">Soy Conductor</option>
+                <option value="pasajero">Soy Pasajero</option>
+                <option value="conductor">Soy Conductor</option>
               </select>
             </div>
           </div>

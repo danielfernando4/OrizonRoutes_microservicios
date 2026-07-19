@@ -52,9 +52,17 @@ dist-ssr/
 build/
 out/
 
-# Configuración y Logs
 .eslintcache
 .vite/
+
+# IDEs y Editores
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+
+# Logs
+*.log
 
 # ========================
 # Secretos y Configuración Local
@@ -62,7 +70,8 @@ out/
 # NUNCA subir variables de entorno con secretos reales
 .env
 .env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*.local
 *.pem
+
+# Docker
+docker-compose.override.yml

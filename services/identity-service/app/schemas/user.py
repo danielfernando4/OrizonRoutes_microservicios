@@ -3,8 +3,8 @@ from datetime import datetime
 from enum import Enum
 
 class RoleEnum(str, Enum):
-    CONDUCTOR = "CONDUCTOR"
-    PASAJERO = "PASAJERO"
+    CONDUCTOR = "conductor"
+    PASAJERO = "pasajero"
 
 class UserCreate(BaseModel):
     email: EmailStr

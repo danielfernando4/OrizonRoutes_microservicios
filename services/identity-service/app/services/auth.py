@@ -1,11 +1,14 @@
 import os
+from dotenv import load_dotenv
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
 import jwt
 
+load_dotenv()
+
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
-SECRET_KEY = os.getenv("SECRET_KEY", "super_secret_key_for_testing")
+SECRET_KEY = os.getenv("JWT_SECRET_KEY", "super-secret-key-change-in-production")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7 # 7 days
 

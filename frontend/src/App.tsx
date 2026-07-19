@@ -6,6 +6,8 @@ import 'react-toastify/dist/ReactToastify.css';
 import Navbar from './components/Navbar';
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
+import PaymentSuccessPage from './pages/booking/PaymentSuccessPage';
+import MyReservationsPage from './pages/booking/MyReservationsPage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -39,6 +41,8 @@ function App() {
           <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/payment-success" element={<ProtectedRoute><PaymentSuccessPage /></ProtectedRoute>} />
+          <Route path="/my-reservations" element={<ProtectedRoute><MyReservationsPage /></ProtectedRoute>} />
         </Routes>
         <ToastContainer position="bottom-right" theme="colored" />
       </Router>
