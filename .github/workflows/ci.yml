@@ -27,21 +27,19 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          cd services/${{ matrix.service }}
+          cd ${{ matrix.service }}
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          # Instalar herramientas de QA por defecto en caso de que falten
           pip install ruff pytest httpx
 
       - name: Run Linter (Ruff)
         run: |
-          cd services/${{ matrix.service }}
-          ruff check . || echo "Advertencias de linter encontradas en ${{ matrix.service }}"
+          cd ${{ matrix.service }}
+          ruff check .
 
       - name: Run Unit Tests (Pytest)
         run: |
-          cd services/${{ matrix.service }}
-          # Ejecuta pytest solo si la carpeta tests/ existe
+          cd ${{ matrix.service }}
           if [ -d "tests" ]; then pytest tests/ -v; else echo "No hay tests configurados para ${{ matrix.service }} aún."; fi
 
   frontend-ci:
