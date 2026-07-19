@@ -37,6 +37,27 @@ services:
       - db_booking
     restart: unless-stopped
 
+  mongo_chat:
+    image: mongo:7
+    ports:
+      - "15017:27017"
+    volumes:
+      - mongo_chat_data:/data/db
+    restart: unless-stopped
+
+  chat-service:
+    build:
+      context: ./services/chat-service
+    ports:
+      - "15004:8004"
+    volumes:
+      - ./services/chat-service:/app
+    env_file:
+      - ./services/chat-service/.env
+    depends_on:
+      - mongo_chat
+    restart: unless-stopped
+
   frontend:
     build:
       context: ./frontend
@@ -57,8 +78,10 @@ services:
     depends_on:
       - identity-service
       - booking-service
+      - chat-service
       - frontend
     restart: unless-stopped
 
 volumes:
   db_booking_data:
+  mongo_chat_data:
