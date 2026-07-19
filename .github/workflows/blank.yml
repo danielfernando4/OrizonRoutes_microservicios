@@ -1,0 +1,78 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  backend-ci:
+    name: Backend CI (Linters & Unit Tests)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [identity-service, catalog-service, booking-service, chat-service]
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies
+        run: |
+          cd services/${{ matrix.service }}
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          # Instalar herramientas de QA por defecto en caso de que falten
+          pip install ruff pytest httpx
+
+      - name: Run Linter (Ruff)
+        run: |
+          cd services/${{ matrix.service }}
+          ruff check . || echo "Advertencias de linter encontradas en ${{ matrix.service }}"
+
+      - name: Run Unit Tests (Pytest)
+        run: |
+          cd services/${{ matrix.service }}
+          # Ejecuta pytest solo si la carpeta tests/ existe
+          if [ -d "tests" ]; then pytest tests/ -v; else echo "No hay tests configurados para ${{ matrix.service }} aún."; fi
+
+  frontend-ci:
+    name: Frontend CI (Linters & Build)
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install Frontend Dependencies
+        run: |
+          cd frontend
+          npm install
+
+      - name: Run Linter (ESLint)
+        run: |
+          cd frontend
+          npm run lint --if-present
+
+      - name: Build Frontend
+        run: |
+          cd frontend
+          npm run build
+
+      - name: Run Unit Tests (Vitest/Jest)
+        run: |
+          cd frontend
+          npm run test --if-present
