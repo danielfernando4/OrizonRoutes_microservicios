@@ -8,6 +8,7 @@ services:
       - "15001:15001"
     environment:
       - DATABASE_URL=postgresql://user:pass@db_identity:5432/identity_db
+      - JWT_SECRET_KEY=28088ae11d2e1571053fe33386cbfa6e
     depends_on:
       - db_identity
     restart: unless-stopped
@@ -19,6 +20,7 @@ services:
       - "15002:15002"
     environment:
       - DATABASE_URL=postgresql://user:pass@db_catalog:5432/catalog_db
+      - JWT_SECRET_KEY=28088ae11d2e1571053fe33386cbfa6e
     depends_on:
       - db_catalog
     restart: unless-stopped
@@ -64,6 +66,7 @@ services:
       - ./services/booking-service:/app
     env_file:
       - ./services/booking-service/.env.example
+      - ./services/booking-service/.env
     depends_on:
       - db_booking
     restart: unless-stopped

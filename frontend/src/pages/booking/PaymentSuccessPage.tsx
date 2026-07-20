@@ -8,11 +8,9 @@ interface PaymentResult {
   reservation_id: string;
   reservation_code: string;
   status: string;
-  seats: number;
-  total: number;
-  origin: string;
-  destination: string;
-  departure_time: string;
+  seats_reserved: number;
+  total_price: number;
+  trip_id: string;
 }
 
 export default function PaymentSuccessPage() {
@@ -111,28 +109,18 @@ export default function PaymentSuccessPage() {
             </p>
           </div>
 
-          {result?.origin && (
-            <div className="space-y-3 text-left bg-white/30 rounded-xl p-4 mb-6">
-              <div className="flex justify-between text-sm">
-                <span className="text-foreground/70">Origen</span>
-                <span className="font-medium text-foreground">{result.origin}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-foreground/70">Destino</span>
-                <span className="font-medium text-foreground">{result.destination}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-foreground/70">Asientos</span>
-                <span className="font-medium text-foreground">{result.seats}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-foreground/70">Total pagado</span>
-                <span className="font-medium text-foreground">
-                  ${Number(result.total).toFixed(2)}
-                </span>
-              </div>
+          <div className="space-y-3 text-left bg-white/30 rounded-xl p-4 mb-6">
+            <div className="flex justify-between text-sm">
+              <span className="text-foreground/70">Asientos</span>
+              <span className="font-medium text-foreground">{result?.seats_reserved}</span>
             </div>
-          )}
+            <div className="flex justify-between text-sm">
+              <span className="text-foreground/70">Total pagado</span>
+              <span className="font-medium text-foreground">
+                ${Number(result?.total_price).toFixed(2)}
+              </span>
+            </div>
+          </div>
 
           <button
             onClick={handleGoToReservations}

@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.database import get_db
 from app.dependencies import conductor_required, pasajero_required
 from app.models.payment import TransaccionPago
@@ -68,8 +69,8 @@ async def create_reservation(
     try:
         order_id, approval_link = await paypal_client.create_order(
             value=total_price,
-            return_url="http://localhost/api/booking/confirm-payment",
-            cancel_url="http://localhost:5173",
+            return_url=settings.PAYPAL_RETURN_URL,
+            cancel_url=settings.PAYPAL_CANCEL_URL,
         )
     except Exception as e:
         await catalog_client.release_held_seats(
@@ -99,7 +100,7 @@ async def create_reservation(
     return ReserveResponse(
         reservation_id=reservation.id,
         status="PENDING",
-        paypal_approval_link=approval_link,
+        approval_url=approval_link,
     )
 
 
@@ -110,8 +111,17 @@ async def confirm_payment(
     current_user: dict = Depends(pasajero_required),
 ):
     result = await db.execute(
+        select(TransaccionPago).where(
+            TransaccionPago.paypal_order_id == payload.paypal_order_id,
+        )
+    )
+    transaccion = result.scalar_one_or_none()
+    if not transaccion:
+        raise HTTPException(404, "Transacción de pago no encontrada")
+
+    result = await db.execute(
         select(Reserva).where(
-            Reserva.id == payload.reservation_id,
+            Reserva.id == transaccion.reserva_id,
             Reserva.passenger_id == current_user["id"],
         )
     )
@@ -121,16 +131,6 @@ async def confirm_payment(
 
     if reservation.status != "PENDING":
         raise HTTPException(400, "La reserva no está pendiente")
-
-    result = await db.execute(
-        select(TransaccionPago).where(
-            TransaccionPago.reserva_id == reservation.id,
-            TransaccionPago.paypal_order_id == payload.paypal_order_id,
-        )
-    )
-    transaccion = result.scalar_one_or_none()
-    if not transaccion:
-        raise HTTPException(404, "Transacción de pago no encontrada")
 
     try:
         capture_id, paypal_status = await paypal_client.capture_order(

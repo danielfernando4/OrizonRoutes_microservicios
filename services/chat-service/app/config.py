@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     MONGO_DB_NAME: str = "db_chat"
 
     # JWT (debe coincidir con Identity Service)
-    JWT_SECRET_KEY: str = "clave-secreta-compartida-con-identity-service"
+    JWT_SECRET_KEY: str = "28088ae11d2e1571053fe33386cbfa6e"
     JWT_ALGORITHM: str = "HS256"
 
     HOST: str = "0.0.0.0"

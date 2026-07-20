@@ -6,4 +6,5 @@ pytest
 httpx
 pydantic-settings
 PyJWT
+python-dotenv
 ruff

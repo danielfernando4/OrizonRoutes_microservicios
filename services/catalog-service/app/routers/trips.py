@@ -95,12 +95,10 @@ def update_seats(trip_id: str, seats_data: SeatsUpdate, db: Session = Depends(ge
     return {"status": "ok"}
 
 @router.patch("/{trip_id}/cancel", status_code=status.HTTP_200_OK)
-def cancel_trip(trip_id: str, current_user: dict = Depends(conductor_required), db: Session = Depends(get_db)):
+def cancel_trip(trip_id: str, db: Session = Depends(get_db)):
     trip = db.query(Trip).filter(Trip.id == trip_id).first()
     if not trip:
         raise HTTPException(status_code=404, detail="Trip not found")
-    if trip.driver_id != current_user["id"]:
-        raise HTTPException(status_code=403, detail="Not authorized to cancel this trip")
     
     trip.status = "cancelled"
     db.commit()

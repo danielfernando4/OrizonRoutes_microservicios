@@ -1,11 +1,14 @@
 import os
+from dotenv import load_dotenv
 import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
+load_dotenv()
+
 security = HTTPBearer()
 
-JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "clave-secreta-compartida-con-identity-service")
+JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "28088ae11d2e1571053fe33386cbfa6e")
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 
 
@@ -35,6 +38,7 @@ async def get_current_user(
             detail="Token inválido",
         ) from None
 
+
 class RoleChecker:
     def __init__(self, allowed_roles: list[str]):
         self.allowed_roles = allowed_roles
@@ -46,6 +50,7 @@ class RoleChecker:
                 detail="No tienes permisos para realizar esta acción",
             )
         return current_user
+
 
 conductor_required = RoleChecker(["conductor"])
 authenticated = RoleChecker(["pasajero", "conductor"])

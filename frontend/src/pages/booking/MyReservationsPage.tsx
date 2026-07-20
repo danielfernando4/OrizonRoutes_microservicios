@@ -13,16 +13,16 @@ import {
 } from 'lucide-react';
 
 interface Reserva {
-  id: string;
-  viaje_id: string;
-  origen: string;
-  destino: string;
-  fecha_salida: string;
-  asientos: number;
-  precio_total: number;
-  estado: string;
-  codigo_reserva: string;
-  fecha_reserva: string;
+  reservation_id: string;
+  trip_id: string;
+  origin: string;
+  destination: string;
+  departure_datetime: string;
+  seats_reserved: number;
+  total_price: number;
+  status: string;
+  reservation_code: string;
+  created_at: string;
 }
 
 const statusConfig: Record<string, { label: string; classes: string }> = {
@@ -161,48 +161,48 @@ export default function MyReservationsPage() {
           <div className="space-y-4">
             {reservas.map((reserva) => (
               <div
-                key={reserva.id}
+                key={reserva.reservation_id}
                 className="glass-panel rounded-2xl p-6 hover:shadow-lg transition-shadow"
               >
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <p className="text-xs text-foreground/50 mb-1">
-                      {formatShortDate(reserva.fecha_reserva)}
+                      {formatShortDate(reserva.created_at)}
                     </p>
                     <h3 className="font-bold text-foreground flex items-center gap-2">
                       <MapPin className="w-4 h-4 text-primary flex-shrink-0" />
-                      {reserva.origen} → {reserva.destino}
+                      {reserva.origin} → {reserva.destination}
                     </h3>
                   </div>
-                  <StatusBadge estado={reserva.estado} />
+                  <StatusBadge estado={reserva.status} />
                 </div>
 
                 <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-foreground/70">
                   <div className="flex items-center gap-1.5">
                     <Calendar className="w-4 h-4 text-primary" />
-                    {formatDate(reserva.fecha_salida)}
+                    {formatDate(reserva.departure_datetime)}
                   </div>
                   <div className="flex items-center gap-1.5">
                     <Clock className="w-4 h-4 text-primary" />
-                    {formatTime(reserva.fecha_salida)}
+                    {formatTime(reserva.departure_datetime)}
                   </div>
                   <div className="flex items-center gap-1.5">
                     <Users className="w-4 h-4 text-primary" />
-                    {reserva.asientos} asiento{reserva.asientos !== 1 ? 's' : ''}
+                    {reserva.seats_reserved} asiento{reserva.seats_reserved !== 1 ? 's' : ''}
                   </div>
                   <div className="flex items-center gap-1.5">
                     <CreditCard className="w-4 h-4 text-primary" />
-                    ${Number(reserva.precio_total).toFixed(2)}
+                    ${Number(reserva.total_price).toFixed(2)}
                   </div>
                 </div>
 
-                {reserva.codigo_reserva && (
+                {reserva.reservation_code && (
                   <div className="mt-3 pt-3 border-t border-white/40">
                     <span className="text-xs text-foreground/50">
                       Código: {''}
                     </span>
                     <span className="text-sm font-mono font-bold text-primary">
-                      {reserva.codigo_reserva}
+                      {reserva.reservation_code}
                     </span>
                   </div>
                 )}

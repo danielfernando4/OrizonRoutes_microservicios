@@ -7,7 +7,7 @@ interface Vehicle {
   id: string;
   brand: string;
   model: string;
-  capacity: int;
+  capacity: number;
 }
 
 export default function MyVehiclesPage() {

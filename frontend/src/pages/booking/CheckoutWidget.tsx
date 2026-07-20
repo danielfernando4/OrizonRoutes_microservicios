@@ -44,7 +44,7 @@ export default function CheckoutWidget({
     try {
       const response = await api.post('/api/booking/reserve', {
         trip_id: tripId,
-        seats,
+        seats_requested: seats,
       });
       const { approval_url } = response.data;
       window.location.href = approval_url;

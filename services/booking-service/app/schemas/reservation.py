@@ -11,7 +11,6 @@ class ReserveRequest(BaseModel):
 
 class ConfirmPaymentRequest(BaseModel):
     paypal_order_id: str
-    reservation_id: UUID
 
 
 class CancelRequest(BaseModel):
@@ -36,7 +35,7 @@ class ReservationOut(BaseModel):
 class ReserveResponse(BaseModel):
     reservation_id: UUID
     status: str
-    paypal_approval_link: str
+    approval_url: str
 
 
 class ConfirmPaymentResponse(BaseModel):

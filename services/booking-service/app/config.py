@@ -9,16 +9,16 @@ class Settings(BaseSettings):
 
     DATABASE_URL: str = "postgresql+asyncpg://user:pass@db_booking:5432/db_booking"
 
-    JWT_SECRET_KEY: str = "clave-secreta-compartida-con-identity-service"
+    JWT_SECRET_KEY: str = "28088ae11d2e1571053fe33386cbfa6e"
     JWT_ALGORITHM: str = "HS256"
 
     PAYPAL_CLIENT_ID: str = "sandbox-client-id"
     PAYPAL_CLIENT_SECRET: str = "sandbox-client-secret"
     PAYPAL_SANDBOX: bool = True
-    PAYPAL_RETURN_URL: str = "http://localhost/api/booking/confirm-payment"
-    PAYPAL_CANCEL_URL: str = "http://localhost:5173"
+    PAYPAL_RETURN_URL: str = "http://localhost:15000/payment-success"
+    PAYPAL_CANCEL_URL: str = "http://localhost:15000"
 
-    CATALOG_SERVICE_URL: str = "http://catalog-service:8002"
+    CATALOG_SERVICE_URL: str = "http://catalog-service:15002"
 
     HOST: str = "0.0.0.0"
     PORT: int = 8003
