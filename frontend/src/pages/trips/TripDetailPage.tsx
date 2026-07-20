@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../../api/axiosConfig';
-import { MapPin, Calendar, Clock, DollarSign, Users, ArrowRight, Loader2, Navigation, MessageCircle } from 'lucide-react';
+import { Calendar, DollarSign, Users, ArrowRight, Loader2, Navigation, MessageCircle } from 'lucide-react';
 import CheckoutWidget from '../booking/CheckoutWidget';
 import ChatWindows from '../chat/ChatWindows';
 
@@ -125,7 +125,7 @@ export default function TripDetailPage() {
             {showChat && (
               <div className="mt-4 h-[500px] rounded-xl overflow-hidden border border-border">
                 {/* Embedded Chat Service Component */}
-                <ChatWindows />
+                <ChatWindows tripId={String(trip.id)}/>
               </div>
             )}
           </div>
@@ -134,7 +134,14 @@ export default function TripDetailPage() {
         {/* Right Column: Checkout Widget (Booking Service) */}
         <div className="lg:col-span-1">
           <div className="sticky top-24">
-            <CheckoutWidget trip={trip} />
+            <CheckoutWidget
+              tripId={String(trip.id)}
+              origin={trip.origin}
+              destination={trip.destination}
+              departureTime={trip.departure_time}
+              pricePerSeat={trip.price_per_seat}
+              availableSeats={trip.available_seats}
+            />
           </div>
         </div>
 
