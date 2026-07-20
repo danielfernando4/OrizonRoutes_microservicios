@@ -5,6 +5,7 @@ import api from '../../api/axiosConfig';
 import { Calendar, DollarSign, Users, ArrowRight, Loader2, Navigation, MessageCircle } from 'lucide-react';
 import CheckoutWidget from '../booking/CheckoutWidget';
 import ChatWindows from '../chat/ChatWindows';
+import { useAuth } from '../../context/AuthContext';
 
 export default function TripDetailPage() {
   const { id } = useParams();
@@ -12,6 +13,9 @@ export default function TripDetailPage() {
   const [trip, setTrip] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showChat, setShowChat] = useState(false);
+  const { user } = useAuth();
+  const [driverRooms, setDriverRooms] = useState<any[]>([]);
+  const [selectedPassengerId, setSelectedPassengerId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchTrip = async () => {
@@ -27,6 +31,14 @@ export default function TripDetailPage() {
     };
     fetchTrip();
   }, [id, navigate]);
+
+  useEffect(() => {
+    if (showChat && trip && user?.id === trip.driver_id) {
+      api.get(`/api/chat/rooms/${trip.id}`)
+        .then(res => setDriverRooms(res.data))
+        .catch(console.error);
+    }
+  }, [showChat, trip, user?.id]);
 
   const formatDate = (dateString: string) => {
     const d = new Date(dateString);
@@ -114,7 +126,10 @@ export default function TripDetailPage() {
             {/* Chat integration toggle */}
             <div className="mt-8 pt-8 border-t border-border">
               <button 
-                onClick={() => setShowChat(!showChat)}
+                onClick={() => {
+                  setShowChat(!showChat);
+                  setSelectedPassengerId(null);
+                }}
                 className="w-full flex items-center justify-center gap-2 py-4 bg-background/80 hover:bg-background border border-border rounded-xl text-foreground font-medium transition-all"
               >
                 <MessageCircle className="w-5 h-5 text-primary" />
@@ -123,9 +138,47 @@ export default function TripDetailPage() {
             </div>
             
             {showChat && (
-              <div className="mt-4 h-[500px] rounded-xl overflow-hidden border border-border">
-                {/* Embedded Chat Service Component */}
-                <ChatWindows tripId={String(trip.id)}/>
+              <div className="mt-4 rounded-xl overflow-hidden border border-border">
+                {user?.id === trip.driver_id ? (
+                  /* Vista de Conductor */
+                  <div className="flex flex-col h-[500px]">
+                    {!selectedPassengerId ? (
+                      <div className="p-6 bg-background/80 flex-1 overflow-y-auto">
+                        <h3 className="text-lg font-bold mb-4 text-foreground">Bandeja de Mensajes</h3>
+                        {driverRooms.length === 0 ? (
+                          <p className="text-foreground/60 text-sm">Nadie ha enviado mensajes aún.</p>
+                        ) : (
+                          <div className="space-y-3">
+                            {driverRooms.map((room) => (
+                              <button
+                                key={room._id}
+                                onClick={() => setSelectedPassengerId(room.passenger_id)}
+                                className="w-full text-left p-4 rounded-xl border border-border/50 hover:border-primary/50 transition-colors bg-white/5"
+                              >
+                                <span className="font-medium text-foreground">Chat con pasajero: {room.passenger_id}</span>
+                                <span className="block text-xs text-foreground/40 mt-1">Sala creada: {new Date(room.created_at).toLocaleDateString()}</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="flex flex-col h-full">
+                        <div className="p-2 border-b border-border bg-background flex items-center">
+                           <button onClick={() => setSelectedPassengerId(null)} className="text-sm text-primary hover:underline px-2">
+                             &larr; Volver a la lista
+                           </button>
+                        </div>
+                        <ChatWindows tripId={String(trip.id)} passengerId={selectedPassengerId} otherPartyName={`Pasajero ${selectedPassengerId.substring(0,6)}`} />
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  /* Vista de Pasajero */
+                  <div className="h-[500px]">
+                    <ChatWindows tripId={String(trip.id)} passengerId={String(user?.id)} otherPartyName="Conductor" />
+                  </div>
+                )}
               </div>
             )}
           </div>

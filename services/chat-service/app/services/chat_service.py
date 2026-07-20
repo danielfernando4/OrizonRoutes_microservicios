@@ -20,27 +20,26 @@ class ChatService:
         self.rooms = db[ROOMS_COLLECTION]
         self.messages = db[MESSAGES_COLLECTION]
 
-    async def get_or_create_room(self, trip_id: str, user_id: str) -> dict:
-        room = await self.rooms.find_one({"trip_id": trip_id})
+    async def get_or_create_room(self, trip_id: str, passenger_id: str) -> dict:
+        room = await self.rooms.find_one({"trip_id": trip_id, "passenger_id": passenger_id})
 
         if room is None:
             room = {
                 "trip_id": trip_id,
-                "participants": [user_id],
+                "passenger_id": passenger_id,
                 "created_at": datetime.now(UTC),
             }
             result = await self.rooms.insert_one(room)
             room["_id"] = result.inserted_id
-            return room
-
-        if user_id not in room.get("participants", []):
-            await self.rooms.update_one(
-                {"_id": room["_id"]},
-                {"$addToSet": {"participants": user_id}},
-            )
-            room["participants"] = [*room.get("participants", []), user_id]
-
+            
         return room
+
+    async def get_rooms_for_trip(self, trip_id: str) -> list[dict]:
+        cursor = self.rooms.find({"trip_id": trip_id}).sort("created_at", -1)
+        rooms = [doc async for doc in cursor]
+        for r in rooms:
+            r["_id"] = str(r["_id"])
+        return rooms
 
     async def save_message(
         self, room_id, trip_id: str, sender_id: str, content: str
@@ -57,17 +56,17 @@ class ChatService:
         return message
 
     async def get_history(
-        self, trip_id: str, page: int = 1, page_size: int = 50
+        self, room_id, page: int = 1, page_size: int = 50
     ) -> tuple[list[dict], int]:
         skip = (page - 1) * page_size
         cursor = (
-            self.messages.find({"trip_id": trip_id})
+            self.messages.find({"room_id": room_id})
             .sort("timestamp", 1)
             .skip(skip)
             .limit(page_size)
         )
         items = [doc async for doc in cursor]
-        total = await self.messages.count_documents({"trip_id": trip_id})
+        total = await self.messages.count_documents({"room_id": room_id})
         return items, total
 
 

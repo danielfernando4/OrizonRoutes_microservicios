@@ -18,10 +18,11 @@ router = APIRouter()
 WS_UNAUTHORIZED = 4401
 
 
-@router.websocket("/ws/chat/{trip_id}/{token}")
+@router.websocket("/ws/chat/{trip_id}/{passenger_id}/{token}")
 async def chat_websocket(
     websocket: WebSocket,
     trip_id: str,
+    passenger_id: str,
     token: str,
     db: AsyncIOMotorDatabase = Depends(get_db),
 ) -> None:
@@ -38,9 +39,10 @@ async def chat_websocket(
         return
 
     service = ChatService(db)
-    room = await service.get_or_create_room(trip_id, user["id"])
+    room = await service.get_or_create_room(trip_id, passenger_id)
+    room_id = str(room["_id"])
 
-    await manager.connect(trip_id, websocket)
+    await manager.connect(room_id, websocket)
     try:
         while True:
             raw = await websocket.receive_json()
@@ -58,8 +60,9 @@ async def chat_websocket(
             )
 
             await manager.broadcast(
-                trip_id,
+                room_id,
                 {
+                    "id": str(message["_id"]),
                     "trip_id": trip_id,
                     "sender_id": user["id"],
                     "content": message["content"],
@@ -67,7 +70,7 @@ async def chat_websocket(
                 },
             )
     except WebSocketDisconnect:
-        manager.disconnect(trip_id, websocket)
+        manager.disconnect(room_id, websocket)
     except Exception:
-        logger.exception("Error en el WebSocket de chat para trip_id=%s", trip_id)
-        manager.disconnect(trip_id, websocket)
+        logger.exception("Error en el WebSocket de chat para room_id=%s", room_id)
+        manager.disconnect(room_id, websocket)

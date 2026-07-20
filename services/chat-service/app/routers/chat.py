@@ -9,9 +9,10 @@ from app.services.chat_service import ChatService, message_to_out
 router = APIRouter(prefix="/api/chat", tags=["Chat"])
 
 
-@router.get("/history/{trip_id}", response_model=ChatHistoryResponse)
+@router.get("/history/{trip_id}/{passenger_id}", response_model=ChatHistoryResponse)
 async def get_history(
     trip_id: str,
+    passenger_id: str,
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=200),
     current_user: dict = Depends(get_current_user),
@@ -26,7 +27,8 @@ async def get_history(
     del current_user  # solo se exige autenticación, no se usa el payload
 
     service = ChatService(db)
-    items, total = await service.get_history(trip_id, page=page, page_size=page_size)
+    room = await service.get_or_create_room(trip_id, passenger_id)
+    items, total = await service.get_history(room["_id"], page=page, page_size=page_size)
 
     return ChatHistoryResponse(
         trip_id=trip_id,
@@ -35,3 +37,13 @@ async def get_history(
         page=page,
         page_size=page_size,
     )
+
+@router.get("/rooms/{trip_id}")
+async def get_rooms(
+    trip_id: str,
+    current_user: dict = Depends(get_current_user),
+    db: AsyncIOMotorDatabase = Depends(get_db),
+):
+    service = ChatService(db)
+    rooms = await service.get_rooms_for_trip(trip_id)
+    return rooms

@@ -21,7 +21,7 @@ const RECONNECT_DELAY_MS = 3000;
  * - Abre el WebSocket y reconecta automáticamente si se cae la conexión.
  * - Expone el estado de conexión para que la UI muestre feedback (Wifi on/off).
  */
-export function useChatSocket(tripId: string) {
+export function useChatSocket(tripId: string, passengerId: string) {
   const { token } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [status, setStatus] = useState<ChatConnectionStatus>('connecting');
@@ -38,7 +38,7 @@ export function useChatSocket(tripId: string) {
     setHistoryError('');
 
     api
-      .get(`/api/chat/history/${tripId}`)
+      .get(`/api/chat/history/${tripId}/${passengerId}`)
       .then((response) => {
         if (active) setMessages(response.data.items ?? []);
       })
@@ -56,7 +56,7 @@ export function useChatSocket(tripId: string) {
     return () => {
       active = false;
     };
-  }, [tripId]);
+  }, [tripId, passengerId]);
 
   useEffect(() => {
     if (!token) return;
@@ -64,7 +64,7 @@ export function useChatSocket(tripId: string) {
 
     const connect = () => {
       setStatus('connecting');
-      const ws = new WebSocket(buildChatSocketUrl(tripId, token));
+      const ws = new WebSocket(buildChatSocketUrl(tripId, passengerId, token));
       socketRef.current = ws;
 
       ws.onopen = () => setStatus('open');
@@ -73,7 +73,10 @@ export function useChatSocket(tripId: string) {
         try {
           const data = JSON.parse(event.data);
           if (data.error) return; // mensaje inválido rechazado por el servidor
-          setMessages((prev) => [...prev, data as ChatMessage]);
+          setMessages((prev) => {
+            if (data.id && prev.some(m => m.id === data.id)) return prev;
+            return [...prev, data as ChatMessage];
+          });
         } catch {
           // ignorar frames que no sean JSON válido
         }
@@ -96,7 +99,7 @@ export function useChatSocket(tripId: string) {
       if (reconnectTimer.current) clearTimeout(reconnectTimer.current);
       socketRef.current?.close();
     };
-  }, [tripId, token]);
+  }, [tripId, passengerId, token]);
 
   const sendMessage = useCallback((content: string) => {
     const trimmed = content.trim();

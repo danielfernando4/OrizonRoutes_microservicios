@@ -6,6 +6,8 @@ import { useChatSocket } from '../../hooks/useChatSocket';
 interface ChatWindowProps {
   /** ID del viaje: define la sala de chat en el Chat Service. */
   tripId: string;
+  /** ID del pasajero: identifica unívocamente la conversación 1-a-1. */
+  passengerId: string;
   /** Nombre a mostrar en el encabezado (el Chat Service no conoce nombres). */
   otherPartyName?: string;
 }
@@ -27,10 +29,10 @@ function ChatSkeleton() {
   );
 }
 
-export default function ChatWindow({ tripId, otherPartyName }: ChatWindowProps) {
+export default function ChatWindow({ tripId, passengerId, otherPartyName }: ChatWindowProps) {
   const { user } = useAuth();
   const { messages, status, historyLoading, historyError, sendMessage } =
-    useChatSocket(tripId);
+    useChatSocket(tripId, passengerId);
   const [draft, setDraft] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
 
