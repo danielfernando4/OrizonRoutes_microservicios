@@ -63,7 +63,7 @@ services:
     volumes:
       - ./services/booking-service:/app
     env_file:
-      - ./services/booking-service/.env
+      - ./services/booking-service/.env.example
     depends_on:
       - db_booking
     restart: unless-stopped
@@ -84,7 +84,7 @@ services:
     volumes:
       - ./services/chat-service:/app
     env_file:
-      - ./services/chat-service/.env
+      - ./services/chat-service/.env.example
     depends_on:
       - mongo_chat
     restart: unless-stopped
@@ -109,6 +109,7 @@ services:
     depends_on:
       - identity-service
       - booking-service
+      - catalog-service
       - chat-service
       - frontend
     restart: unless-stopped
