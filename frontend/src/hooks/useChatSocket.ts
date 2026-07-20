@@ -38,7 +38,7 @@ export function useChatSocket(tripId: string) {
     setHistoryError('');
 
     api
-      .get(`/chat/history/${tripId}`)
+      .get(`/api/chat/history/${tripId}`)
       .then((response) => {
         if (active) setMessages(response.data.items ?? []);
       })

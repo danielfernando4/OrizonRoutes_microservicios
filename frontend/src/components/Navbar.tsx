@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, User as UserIcon, Map, LogIn, CalendarClock } from 'lucide-react';
+import { LogOut, User as UserIcon, Map, LogIn, CalendarClock, Search, PlusCircle, Car } from 'lucide-react';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -23,6 +23,34 @@ export default function Navbar() {
           <div className="flex items-center space-x-4">
             {user ? (
               <>
+                <Link
+                  to="/"
+                  className="flex items-center space-x-1.5 text-foreground/70 hover:text-primary transition-colors text-sm font-medium"
+                  title="Buscar Viajes"
+                >
+                  <Search className="w-4 h-4" />
+                  <span className="hidden sm:inline">Buscar Viajes</span>
+                </Link>
+                {user.role === 'CONDUCTOR' && (
+                  <>
+                    <Link
+                      to="/publish"
+                      className="flex items-center space-x-1.5 text-foreground/70 hover:text-primary transition-colors text-sm font-medium"
+                      title="Publicar Viaje"
+                    >
+                      <PlusCircle className="w-4 h-4" />
+                      <span className="hidden sm:inline">Publicar Viaje</span>
+                    </Link>
+                    <Link
+                      to="/vehicles"
+                      className="flex items-center space-x-1.5 text-foreground/70 hover:text-primary transition-colors text-sm font-medium"
+                      title="Mis Vehículos"
+                    >
+                      <Car className="w-4 h-4" />
+                      <span className="hidden sm:inline">Mis Vehículos</span>
+                    </Link>
+                  </>
+                )}
                 <Link
                   to="/my-reservations"
                   className="flex items-center space-x-1.5 text-foreground/70 hover:text-primary transition-colors text-sm font-medium"

@@ -8,6 +8,10 @@ import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import PaymentSuccessPage from './pages/booking/PaymentSuccessPage';
 import MyReservationsPage from './pages/booking/MyReservationsPage';
+import SearchPage from './pages/trips/SearchPage';
+import PublishTripPage from './pages/trips/PublishTripPage';
+import MyVehiclesPage from './pages/trips/MyVehiclesPage';
+import TripDetailPage from './pages/trips/TripDetailPage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -16,21 +20,6 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-function Home() {
-  const { user } = useAuth();
-  return (
-    <div className="min-h-screen pt-24 px-4 bg-background">
-      <div className="max-w-7xl mx-auto text-center">
-        <h1 className="text-4xl font-bold text-foreground mb-4">Bienvenido a Orizon Routes</h1>
-        {user ? (
-          <p className="text-xl text-foreground/70">¡Hola {user.name}! Estás logueado como {user.role}.</p>
-        ) : (
-          <p className="text-xl text-foreground/70">Inicia sesión para comenzar.</p>
-        )}
-      </div>
-    </div>
-  );
-}
 
 function App() {
   return (
@@ -38,11 +27,14 @@ function App() {
       <Router>
         <Navbar />
         <Routes>
-          <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+          <Route path="/" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/payment-success" element={<ProtectedRoute><PaymentSuccessPage /></ProtectedRoute>} />
           <Route path="/my-reservations" element={<ProtectedRoute><MyReservationsPage /></ProtectedRoute>} />
+          <Route path="/vehicles" element={<ProtectedRoute><MyVehiclesPage /></ProtectedRoute>} />
+          <Route path="/publish" element={<ProtectedRoute><PublishTripPage /></ProtectedRoute>} />
+          <Route path="/trips/:id" element={<ProtectedRoute><TripDetailPage /></ProtectedRoute>} />
         </Routes>
         <ToastContainer position="bottom-right" theme="colored" />
       </Router>

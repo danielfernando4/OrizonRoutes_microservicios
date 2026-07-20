@@ -6,10 +6,41 @@ services:
       context: ./services/identity-service
     ports:
       - "15001:15001"
+    environment:
+      - DATABASE_URL=postgresql://user:pass@db_identity:5432/identity_db
+    depends_on:
+      - db_identity
+    restart: unless-stopped
+
+  catalog-service:
+    build:
+      context: ./services/catalog-service
+    ports:
+      - "15002:15002"
+    environment:
+      - DATABASE_URL=postgresql://user:pass@db_catalog:5432/catalog_db
+    depends_on:
+      - db_catalog
+    restart: unless-stopped
+
+  db_identity:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: identity_db
     volumes:
-      - ./services/identity-service:/app
-    env_file:
-      - ./services/identity-service/.env
+      - identity_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  db_catalog:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: catalog_db
+    volumes:
+      - catalog_data:/var/lib/postgresql/data
     restart: unless-stopped
 
   db_booking:
@@ -83,5 +114,8 @@ services:
     restart: unless-stopped
 
 volumes:
+  identity_data:
+  catalog_data:
+  frontend_node_modules:
   db_booking_data:
   mongo_chat_data:

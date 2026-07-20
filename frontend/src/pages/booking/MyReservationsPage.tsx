@@ -70,7 +70,7 @@ export default function MyReservationsPage() {
     const fetchReservas = async () => {
       try {
         const response = await api.get('/booking/my-reservations');
-        setReservas(response.data);
+        setReservas(response.data.items || []);
       } catch (err: any) {
         setError(err.response?.data?.detail || 'Error al cargar las reservas');
       } finally {

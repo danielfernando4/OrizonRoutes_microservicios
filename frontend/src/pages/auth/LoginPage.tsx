@@ -14,10 +14,10 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await api.post('/auth/login', { email, plain_password: password });
+      const response = await api.post('/api/auth/login', { email, plain_password: password });
       
       // Get user info with token
-      const meResponse = await api.get('/auth/me', {
+      const meResponse = await api.get('/api/auth/me', {
         headers: { Authorization: `Bearer ${response.data.access_token}` }
       });
       

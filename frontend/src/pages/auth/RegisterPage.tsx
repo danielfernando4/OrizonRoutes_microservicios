@@ -16,7 +16,7 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.post('/auth/register', formData);
+      await api.post('/api/auth/register', formData);
       toast.success('¡Registro exitoso! Ahora inicia sesión.');
       navigate('/login');
     } catch (err: any) {
