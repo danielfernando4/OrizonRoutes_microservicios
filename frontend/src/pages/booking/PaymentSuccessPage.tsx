@@ -40,7 +40,7 @@ export default function PaymentSuccessPage() {
 
     const confirmPayment = async () => {
       try {
-        const response = await api.post('/booking/confirm-payment', {
+        const response = await api.post('/api/booking/confirm-payment', {
           paypal_order_id: token,
         });
         const data = response.data;

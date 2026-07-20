@@ -42,7 +42,7 @@ export default function CheckoutWidget({
   const handleReserve = async () => {
     setLoading(true);
     try {
-      const response = await api.post('/booking/reserve', {
+      const response = await api.post('/api/booking/reserve', {
         trip_id: tripId,
         seats,
       });

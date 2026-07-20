@@ -69,7 +69,7 @@ export default function MyReservationsPage() {
   useEffect(() => {
     const fetchReservas = async () => {
       try {
-        const response = await api.get('/booking/my-reservations');
+        const response = await api.get('/api/booking/my-reservations');
         setReservas(response.data.items || []);
       } catch (err: any) {
         setError(err.response?.data?.detail || 'Error al cargar las reservas');
