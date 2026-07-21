@@ -2,30 +2,34 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axiosConfig';
-import { Mail, Lock, ArrowRight } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
     try {
       const response = await api.post('/api/auth/login', { email, plain_password: password });
-      
-      // Get user info with token
+
       const meResponse = await api.get('/api/auth/me', {
         headers: { Authorization: `Bearer ${response.data.access_token}` }
       });
-      
+
       login(response.data.access_token, meResponse.data);
       toast.success('¡Bienvenido de vuelta!');
       navigate('/');
     } catch (err: any) {
       toast.error(err.response?.data?.detail || 'Error al iniciar sesión');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -43,7 +47,6 @@ export default function LoginPage() {
 
       <div className="panel-enter glass-panel p-7 sm:p-9 rounded-2xl w-full max-w-md relative z-10 mx-4 border border-white/30 shadow-2xl shadow-black/30">
         <div className="text-center mb-8">
-          {/* Marca de firma: línea de horizonte + punto de ruta */}
           <div className="w-14 h-14 mx-auto mb-5 relative">
             <svg viewBox="0 0 56 56" className="w-full h-full">
               <path
@@ -88,23 +91,36 @@ export default function LoginPage() {
             <div className="relative group">
               <Lock className="w-4.5 h-4.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-foreground/40 group-focus-within:text-primary transition-colors" />
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 required
                 autoComplete="current-password"
-                className="w-full pl-10 pr-4 py-2.5 bg-white/60 border border-white/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/60 focus:border-primary/60 focus:bg-white/80 transition-all duration-200 text-foreground placeholder:text-foreground/40 shadow-sm"
+                className="w-full pl-10 pr-11 py-2.5 bg-white/60 border border-white/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/60 focus:border-primary/60 focus:bg-white/80 transition-all duration-200 text-foreground placeholder:text-foreground/40 shadow-sm"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-foreground/70 transition-colors cursor-pointer"
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
+              </button>
             </div>
           </div>
 
           <button
             type="submit"
-            className="w-full group bg-gradient-to-r from-primary to-secondary hover:brightness-110 active:scale-[0.98] text-white font-medium py-2.5 px-4 rounded-xl transition-all duration-200 cursor-pointer mt-2 shadow-lg shadow-primary/30 hover:shadow-primary/40 hover:-translate-y-0.5 flex items-center justify-center gap-2"
+            disabled={loading}
+            className="w-full group bg-gradient-to-r from-primary to-secondary hover:brightness-110 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-2.5 px-4 rounded-xl transition-all duration-200 cursor-pointer mt-2 shadow-lg shadow-primary/30 hover:shadow-primary/40 hover:-translate-y-0.5 flex items-center justify-center gap-2"
           >
-            Entrar
-            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+            {loading ? 'Entrando...' : (
+              <>
+                Entrar
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+              </>
+            )}
           </button>
         </form>
 

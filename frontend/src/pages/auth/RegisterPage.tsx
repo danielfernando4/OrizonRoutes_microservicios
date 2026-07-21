@@ -1,26 +1,49 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../../api/axiosConfig';
-import { Mail, Lock, User as UserIcon, Shield, ChevronDown, ArrowRight } from 'lucide-react';
+import { Mail, Lock, User as UserIcon, Shield, ChevronDown, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'react-toastify';
+
+const PASSWORD_RULES = [
+  { key: 'min', label: 'Al menos 8 caracteres', test: (v: string) => v.length >= 8 },
+  { key: 'upper', label: 'Una mayúscula (A-Z)', test: (v: string) => /[A-Z]/.test(v) },
+  { key: 'lower', label: 'Una minúscula (a-z)', test: (v: string) => /[a-z]/.test(v) },
+  { key: 'digit', label: 'Un número (0-9)', test: (v: string) => /\d/.test(v) },
+  { key: 'special', label: 'Un carácter especial (!@#$%...)', test: (v: string) => /[!@#$%^&*(),.?":{}|<>_\-]/.test(v) },
+];
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     plain_password: '',
-    role: 'pasajero'
+    role: 'pasajero',
   });
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const navigate = useNavigate();
+
+  const rules = useMemo(
+    () => PASSWORD_RULES.map((r) => ({ ...r, met: r.test(formData.plain_password) })),
+    [formData.plain_password],
+  );
+
+  const passwordsMatch = formData.plain_password === confirmPassword;
+  const allRulesMet = rules.every((r) => r.met);
+  const canSubmit = allRulesMet && passwordsMatch && formData.name && formData.email;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitted(true);
+    if (!canSubmit) return;
     try {
       await api.post('/api/auth/register', formData);
       toast.success('¡Registro exitoso! Ahora inicia sesión.');
       navigate('/login');
     } catch (err: any) {
-      toast.error(err.response?.data?.detail || 'Error al registrarse');
+      toast.error(err.response?.data?.detail?.[0]?.msg || err.response?.data?.detail || 'Error al registrarse');
     }
   };
 
@@ -38,7 +61,6 @@ export default function RegisterPage() {
 
       <div className="panel-enter glass-panel p-7 sm:p-9 rounded-2xl w-full max-w-md relative z-10 mx-4 border border-white/30 shadow-2xl shadow-black/30">
         <div className="text-center mb-8">
-          {/* Marca de firma: línea de horizonte + punto de ruta */}
           <div className="w-14 h-14 mx-auto mb-5 relative">
             <svg viewBox="0 0 56 56" className="w-full h-full">
               <path
@@ -73,7 +95,7 @@ export default function RegisterPage() {
                 className="w-full pl-10 pr-4 py-2.5 bg-white/60 border border-white/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-accent/60 focus:border-accent/60 focus:bg-white/80 transition-all duration-200 text-foreground placeholder:text-foreground/40 shadow-sm"
                 placeholder="Juan Pérez"
                 value={formData.name}
-                onChange={(e) => setFormData({...formData, name: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               />
             </div>
           </div>
@@ -89,7 +111,7 @@ export default function RegisterPage() {
                 className="w-full pl-10 pr-4 py-2.5 bg-white/60 border border-white/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-accent/60 focus:border-accent/60 focus:bg-white/80 transition-all duration-200 text-foreground placeholder:text-foreground/40 shadow-sm"
                 placeholder="tu@email.com"
                 value={formData.email}
-                onChange={(e) => setFormData({...formData, email: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               />
             </div>
           </div>
@@ -99,15 +121,68 @@ export default function RegisterPage() {
             <div className="relative group">
               <Lock className="w-4.5 h-4.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-foreground/40 group-focus-within:text-accent transition-colors" />
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 required
                 autoComplete="new-password"
-                className="w-full pl-10 pr-4 py-2.5 bg-white/60 border border-white/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-accent/60 focus:border-accent/60 focus:bg-white/80 transition-all duration-200 text-foreground placeholder:text-foreground/40 shadow-sm"
+                className="w-full pl-10 pr-11 py-2.5 bg-white/60 border border-white/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-accent/60 focus:border-accent/60 focus:bg-white/80 transition-all duration-200 text-foreground placeholder:text-foreground/40 shadow-sm"
                 placeholder="••••••••"
                 value={formData.plain_password}
-                onChange={(e) => setFormData({...formData, plain_password: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, plain_password: e.target.value })}
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-foreground/70 transition-colors cursor-pointer"
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
+              </button>
             </div>
+            {formData.plain_password && (
+              <ul className="mt-2 space-y-1">
+                {rules.map((r) => (
+                  <li key={r.key} className={`text-xs flex items-center gap-1.5 ${r.met ? 'text-green-600' : 'text-foreground/50'}`}>
+                    <span className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center text-[8px] font-bold ${r.met ? 'bg-green-600 border-green-600 text-white' : 'border-foreground/30'}`}>
+                      {r.met ? '✓' : ''}
+                    </span>
+                    {r.label}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-foreground/80 mb-1.5">Confirmar Contraseña</label>
+            <div className="relative group">
+              <Lock className="w-4.5 h-4.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-foreground/40 group-focus-within:text-accent transition-colors" />
+              <input
+                type={showConfirm ? 'text' : 'password'}
+                required
+                autoComplete="new-password"
+                className={`w-full pl-10 pr-11 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent/60 focus:border-accent/60 focus:bg-white/80 transition-all duration-200 text-foreground placeholder:text-foreground/40 shadow-sm ${
+                  submitted && !passwordsMatch
+                    ? 'bg-red-50 border-red-400'
+                    : formData.plain_password && confirmPassword && passwordsMatch
+                      ? 'bg-green-50 border-green-400'
+                      : 'bg-white/60 border-white/50'
+                }`}
+                placeholder="••••••••"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirm(!showConfirm)}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-foreground/70 transition-colors cursor-pointer"
+                tabIndex={-1}
+              >
+                {showConfirm ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
+              </button>
+            </div>
+            {submitted && !passwordsMatch && (
+              <p className="text-xs text-red-500 mt-1">Las contraseñas no coinciden</p>
+            )}
           </div>
 
           <div>
@@ -117,7 +192,7 @@ export default function RegisterPage() {
               <select
                 className="w-full pl-10 pr-9 py-2.5 bg-white/60 border border-white/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-accent/60 focus:border-accent/60 focus:bg-white/80 transition-all duration-200 text-foreground cursor-pointer appearance-none shadow-sm"
                 value={formData.role}
-                onChange={(e) => setFormData({...formData, role: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, role: e.target.value })}
               >
                 <option value="pasajero">Soy Pasajero</option>
                 <option value="conductor">Soy Conductor</option>
@@ -128,7 +203,8 @@ export default function RegisterPage() {
 
           <button
             type="submit"
-            className="w-full group bg-gradient-to-r from-accent to-orange-600 hover:brightness-110 active:scale-[0.98] text-white font-medium py-2.5 px-4 rounded-xl transition-all duration-200 cursor-pointer mt-2 shadow-lg shadow-accent/30 hover:shadow-accent/40 hover:-translate-y-0.5 flex items-center justify-center gap-2"
+            disabled={!canSubmit && submitted}
+            className="w-full group bg-gradient-to-r from-accent to-orange-600 hover:brightness-110 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-2.5 px-4 rounded-xl transition-all duration-200 cursor-pointer mt-2 shadow-lg shadow-accent/30 hover:shadow-accent/40 hover:-translate-y-0.5 flex items-center justify-center gap-2"
           >
             Registrarme
             <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
