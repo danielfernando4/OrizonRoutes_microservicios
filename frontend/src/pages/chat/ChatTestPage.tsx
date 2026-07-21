@@ -11,6 +11,7 @@ import ChatWindow from './ChatWindows';
  */
 export default function ChatTestPage() {
   const [tripId, setTripId] = useState('');
+  const [passengerId, setPassengerId] = useState('');
   const [activeTripId, setActiveTripId] = useState<string | null>(null);
 
   return (
@@ -25,28 +26,37 @@ export default function ChatTestPage() {
 
         <div className="glass-panel rounded-2xl p-6 space-y-3">
           <label className="text-sm font-medium text-foreground/70">
-            Trip ID (usa el mismo valor en dos sesiones/navegadores distintos
-            para simular pasajero y conductor)
+            Trip ID
           </label>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={tripId}
-              onChange={(e) => setTripId(e.target.value)}
-              placeholder="uuid-del-viaje o cualquier string de prueba"
-              className="flex-1 bg-white/60 border border-white/40 rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
-            />
-            <button
-              onClick={() => setActiveTripId(tripId)}
-              disabled={!tripId.trim()}
-              className="bg-primary hover:bg-secondary disabled:opacity-40 text-white font-medium px-4 py-2 rounded-lg transition-colors cursor-pointer"
-            >
-              Conectar
-            </button>
-          </div>
+          <input
+            type="text"
+            value={tripId}
+            onChange={(e) => setTripId(e.target.value)}
+            placeholder="uuid-del-viaje"
+            className="w-full bg-white/60 border border-white/40 rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+          />
+          <label className="text-sm font-medium text-foreground/70">
+            Passenger ID
+          </label>
+          <input
+            type="text"
+            value={passengerId}
+            onChange={(e) => setPassengerId(e.target.value)}
+            placeholder="tu-id-de-pasajero"
+            className="w-full bg-white/60 border border-white/40 rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+          />
+          <button
+            onClick={() => setActiveTripId(tripId)}
+            disabled={!tripId.trim() || !passengerId.trim()}
+            className="w-full bg-primary hover:bg-secondary disabled:opacity-40 text-white font-medium px-4 py-2 rounded-lg transition-colors cursor-pointer"
+          >
+            Conectar
+          </button>
         </div>
 
-        {activeTripId && <ChatWindow tripId={activeTripId} />}
+        {activeTripId && (
+          <ChatWindow tripId={activeTripId} passengerId={passengerId} />
+        )}
       </div>
     </div>
   );

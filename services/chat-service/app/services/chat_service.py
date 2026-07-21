@@ -21,7 +21,9 @@ class ChatService:
         self.messages = db[MESSAGES_COLLECTION]
 
     async def get_or_create_room(self, trip_id: str, passenger_id: str) -> dict:
-        room = await self.rooms.find_one({"trip_id": trip_id, "passenger_id": passenger_id})
+        room = await self.rooms.find_one(
+            {"trip_id": trip_id, "passenger_id": passenger_id}
+        )
 
         if room is None:
             room = {
@@ -31,7 +33,8 @@ class ChatService:
             }
             result = await self.rooms.insert_one(room)
             room["_id"] = result.inserted_id
-            
+
+
         return room
 
     async def get_rooms_for_trip(self, trip_id: str) -> list[dict]:

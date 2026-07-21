@@ -28,7 +28,9 @@ async def get_history(
 
     service = ChatService(db)
     room = await service.get_or_create_room(trip_id, passenger_id)
-    items, total = await service.get_history(room["_id"], page=page, page_size=page_size)
+    items, total = await service.get_history(
+        room["_id"], page=page, page_size=page_size
+    )
 
     return ChatHistoryResponse(
         trip_id=trip_id,

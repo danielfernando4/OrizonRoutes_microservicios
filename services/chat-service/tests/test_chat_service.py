@@ -12,43 +12,24 @@ async def test_get_or_create_room_creates_new_room_when_missing(mock_db, trip_id
 
     mock_db.rooms_collection.insert_one.assert_awaited_once()
     assert room["trip_id"] == trip_id
-    assert "user-1" in room["participants"]
+    assert room["passenger_id"] == "user-1"
 
 
 @pytest.mark.asyncio
-async def test_get_or_create_room_adds_new_participant_to_existing_room(
-    mock_db, trip_id
-):
-    existing_room = {
+async def test_get_or_create_room_returns_existing_room(mock_db, trip_id):
+    existing = {
         "_id": ObjectId(),
         "trip_id": trip_id,
-        "participants": ["driver-1"],
+        "passenger_id": "passenger-1",
+        "created_at": "2026-07-19T00:00:00Z",
     }
-    mock_db.rooms_collection.find_one.return_value = existing_room
+    mock_db.rooms_collection.find_one.return_value = existing
 
     service = ChatService(mock_db)
     room = await service.get_or_create_room(trip_id, "passenger-1")
 
-    mock_db.rooms_collection.update_one.assert_awaited_once()
-    assert "passenger-1" in room["participants"]
-    assert "driver-1" in room["participants"]
-
-
-@pytest.mark.asyncio
-async def test_get_or_create_room_does_not_duplicate_existing_participant(
-    mock_db, trip_id
-):
-    existing_room = {
-        "_id": ObjectId(),
-        "trip_id": trip_id,
-        "participants": ["passenger-1"],
-    }
-    mock_db.rooms_collection.find_one.return_value = existing_room
-
-    service = ChatService(mock_db)
-    await service.get_or_create_room(trip_id, "passenger-1")
-
-    mock_db.rooms_collection.update_one.assert_not_awaited()
+    mock_db.rooms_collection.insert_one.assert_not_awaited()
+    assert room["passenger_id"] == "passenger-1"
 
 
 @pytest.mark.asyncio
@@ -68,8 +49,9 @@ async def test_save_message_persists_document(mock_db, trip_id):
 @pytest.mark.asyncio
 async def test_get_history_returns_items_and_total(mock_db, trip_id, mock_messages):
     service = ChatService(mock_db)
+    room_id = ObjectId()
 
-    items, total = await service.get_history(trip_id)
+    items, total = await service.get_history(room_id)
 
     assert total == len(mock_messages)
     assert len(items) == len(mock_messages)
