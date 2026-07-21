@@ -8,6 +8,11 @@ class VehicleBase(BaseModel):
 class VehicleCreate(VehicleBase):
     pass
 
+class VehicleUpdate(BaseModel):
+    brand: str | None = Field(None, min_length=1)
+    model: str | None = Field(None, min_length=1)
+    capacity: int | None = Field(None, gt=0)
+
 class VehicleOut(VehicleBase):
     id: str
     driver_id: str

@@ -162,7 +162,8 @@ export default function MyReservationsPage() {
             {reservas.map((reserva) => (
               <div
                 key={reserva.reservation_id}
-                className="glass-panel rounded-2xl p-6 hover:shadow-lg transition-shadow"
+                onClick={() => navigate(`/trips/${reserva.trip_id}`)}
+                className="glass-panel rounded-2xl p-6 hover:shadow-lg transition-shadow cursor-pointer"
               >
                 <div className="flex items-start justify-between mb-3">
                   <div>
@@ -178,14 +179,23 @@ export default function MyReservationsPage() {
                 </div>
 
                 <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-foreground/70">
-                  <div className="flex items-center gap-1.5">
-                    <Calendar className="w-4 h-4 text-primary" />
-                    {formatDate(reserva.departure_datetime)}
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <Clock className="w-4 h-4 text-primary" />
-                    {formatTime(reserva.departure_datetime)}
-                  </div>
+                  {reserva.departure_datetime ? (
+                    <div className="flex items-center gap-1.5">
+                      <Calendar className="w-4 h-4 text-primary" />
+                      {formatDate(reserva.departure_datetime)}
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1.5 text-foreground/40">
+                      <Calendar className="w-4 h-4" />
+                      Fecha no disponible
+                    </div>
+                  )}
+                  {reserva.departure_datetime ? (
+                    <div className="flex items-center gap-1.5">
+                      <Clock className="w-4 h-4 text-primary" />
+                      {formatTime(reserva.departure_datetime)}
+                    </div>
+                  ) : null}
                   <div className="flex items-center gap-1.5">
                     <Users className="w-4 h-4 text-primary" />
                     {reserva.seats_reserved} asiento{reserva.seats_reserved !== 1 ? 's' : ''}

@@ -184,19 +184,21 @@ export default function TripDetailPage() {
           </div>
         </div>
 
-        {/* Right Column: Checkout Widget (Booking Service) */}
-        <div className="lg:col-span-1">
-          <div className="sticky top-24">
-            <CheckoutWidget
-              tripId={String(trip.id)}
-              origin={trip.origin}
-              destination={trip.destination}
-              departureTime={trip.departure_time}
-              pricePerSeat={trip.price_per_seat}
-              availableSeats={trip.available_seats}
-            />
+        {/* Right Column: Checkout Widget (only for passengers on active trips) */}
+        {user?.id !== trip.driver_id && trip.status === 'active' && (
+          <div className="lg:col-span-1">
+            <div className="sticky top-24">
+              <CheckoutWidget
+                tripId={String(trip.id)}
+                origin={trip.origin}
+                destination={trip.destination}
+                departureTime={trip.departure_time}
+                pricePerSeat={trip.price_per_seat}
+                availableSeats={trip.available_seats}
+              />
+            </div>
           </div>
-        </div>
+        )}
 
       </div>
     </div>

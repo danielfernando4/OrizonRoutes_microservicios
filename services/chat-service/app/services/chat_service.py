@@ -44,6 +44,20 @@ class ChatService:
             r["_id"] = str(r["_id"])
         return rooms
 
+    async def get_rooms_for_trips(self, trip_ids: list[str]) -> list[dict]:
+        cursor = self.rooms.find({"trip_id": {"$in": trip_ids}}).sort("created_at", -1)
+        rooms = [doc async for doc in cursor]
+        for r in rooms:
+            r["_id"] = str(r["_id"])
+        return rooms
+
+    async def get_rooms_for_passenger(self, passenger_id: str) -> list[dict]:
+        cursor = self.rooms.find({"passenger_id": passenger_id}).sort("created_at", -1)
+        rooms = [doc async for doc in cursor]
+        for r in rooms:
+            r["_id"] = str(r["_id"])
+        return rooms
+
     async def save_message(
         self, room_id, trip_id: str, sender_id: str, content: str
     ) -> dict:

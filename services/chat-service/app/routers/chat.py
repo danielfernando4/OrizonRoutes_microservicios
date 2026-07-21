@@ -40,6 +40,20 @@ async def get_history(
         page_size=page_size,
     )
 
+@router.get("/rooms")
+async def list_rooms(
+    trip_ids: str = Query(None, description="Comma-separated trip IDs (for conductors)"),
+    current_user: dict = Depends(get_current_user),
+    db: AsyncIOMotorDatabase = Depends(get_db),
+):
+    service = ChatService(db)
+    if trip_ids:
+        ids_list = [t.strip() for t in trip_ids.split(",") if t.strip()]
+        rooms = await service.get_rooms_for_trips(ids_list)
+    else:
+        rooms = await service.get_rooms_for_passenger(current_user["id"])
+    return rooms
+
 @router.get("/rooms/{trip_id}")
 async def get_rooms(
     trip_id: str,

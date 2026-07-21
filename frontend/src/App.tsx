@@ -12,6 +12,10 @@ import SearchPage from './pages/trips/SearchPage';
 import PublishTripPage from './pages/trips/PublishTripPage';
 import MyVehiclesPage from './pages/trips/MyVehiclesPage';
 import TripDetailPage from './pages/trips/TripDetailPage';
+import MyTripsPage from './pages/trips/MyTripsPage';
+import GlobalChatPage from './pages/chat/GlobalChatPage';
+import { useEffect } from 'react';
+import { toast } from 'react-toastify';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -20,8 +24,23 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function RoleProtectedRoute({ children, role }: { children: React.ReactNode; role: string }) {
+  const { user, loading } = useAuth();
+  if (loading) return <div className="min-h-screen flex items-center justify-center">Cargando...</div>;
+  if (!user) return <Navigate to="/login" replace />;
+  if (user.role !== role) return <Navigate to="/" replace />;
+  return <>{children}</>;
+}
 
 function App() {
+  useEffect(() => {
+    const reason = localStorage.getItem('redirectReason');
+    if (reason) {
+      toast.error(reason);
+      localStorage.removeItem('redirectReason');
+    }
+  }, []);
+
   return (
     <AuthProvider>
       <Router>
@@ -31,9 +50,11 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/payment-success" element={<ProtectedRoute><PaymentSuccessPage /></ProtectedRoute>} />
-          <Route path="/my-reservations" element={<ProtectedRoute><MyReservationsPage /></ProtectedRoute>} />
-          <Route path="/vehicles" element={<ProtectedRoute><MyVehiclesPage /></ProtectedRoute>} />
-          <Route path="/publish" element={<ProtectedRoute><PublishTripPage /></ProtectedRoute>} />
+          <Route path="/my-reservations" element={<RoleProtectedRoute role="pasajero"><MyReservationsPage /></RoleProtectedRoute>} />
+          <Route path="/vehicles" element={<RoleProtectedRoute role="conductor"><MyVehiclesPage /></RoleProtectedRoute>} />
+          <Route path="/publish" element={<RoleProtectedRoute role="conductor"><PublishTripPage /></RoleProtectedRoute>} />
+          <Route path="/my-trips" element={<RoleProtectedRoute role="conductor"><MyTripsPage /></RoleProtectedRoute>} />
+          <Route path="/chat" element={<ProtectedRoute><GlobalChatPage /></ProtectedRoute>} />
           <Route path="/trips/:id" element={<ProtectedRoute><TripDetailPage /></ProtectedRoute>} />
         </Routes>
         <ToastContainer position="bottom-right" theme="colored" />

@@ -8,7 +8,7 @@ from ..services.osrm import calculate_distance_and_duration
 from typing import List, Optional
 
 from pydantic import BaseModel
-from ..dependencies import conductor_required
+from ..dependencies import conductor_required, authenticated
 
 class SeatsUpdate(BaseModel):
     seats: int = None
@@ -57,6 +57,12 @@ def search_trips(
         query = query.filter(Trip.destination.ilike(f"%{destination}%"))
         
     return query.all()
+
+@router.get("/mine", response_model=List[TripOut])
+def list_my_trips(current_user: dict = Depends(authenticated), db: Session = Depends(get_db)):
+    driver_id = current_user["id"]
+    trips = db.query(Trip).filter(Trip.driver_id == driver_id).order_by(Trip.departure_time.desc()).all()
+    return trips
 
 @router.get("/{trip_id}", response_model=TripOut)
 def get_trip(trip_id: str, db: Session = Depends(get_db)):

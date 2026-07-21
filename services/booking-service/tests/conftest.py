@@ -101,6 +101,7 @@ def db_session():
     scalar_mock = MagicMock()
     scalar_mock.scalar_one_or_none = MagicMock(return_value=None)
     scalars_mock = MagicMock()
+    scalars_mock.scalar_one_or_none = MagicMock(return_value=None)
     scalars_mock.scalars.return_value = MagicMock()
     scalars_mock.scalars.return_value.all = MagicMock(return_value=[])
 

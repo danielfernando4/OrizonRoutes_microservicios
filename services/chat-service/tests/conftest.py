@@ -59,6 +59,24 @@ class _AsyncCursor:
 
 
 @pytest.fixture
+def mock_rooms(trip_id: str) -> list[dict]:
+    return [
+        {
+            "_id": ObjectId(),
+            "trip_id": trip_id,
+            "passenger_id": "passenger-1",
+            "created_at": datetime.now(UTC),
+        },
+        {
+            "_id": ObjectId(),
+            "trip_id": trip_id,
+            "passenger_id": "passenger-2",
+            "created_at": datetime.now(UTC),
+        },
+    ]
+
+
+@pytest.fixture
 def mock_messages(trip_id: str) -> list[dict]:
     room_id = ObjectId()
     return [
@@ -82,10 +100,11 @@ def mock_messages(trip_id: str) -> list[dict]:
 
 
 @pytest.fixture
-def mock_db(mock_messages: list[dict]) -> MagicMock:
+def mock_db(mock_messages: list[dict], mock_rooms: list[dict]) -> MagicMock:
     """Simula la AsyncIOMotorDatabase con las colecciones 'salas' y 'mensajes'."""
     rooms_collection = MagicMock()
     rooms_collection.find_one = AsyncMock(return_value=None)
+    rooms_collection.find = MagicMock(return_value=_AsyncCursor(mock_rooms))
     insert_room_result = MagicMock()
     insert_room_result.inserted_id = ObjectId()
     rooms_collection.insert_one = AsyncMock(return_value=insert_room_result)

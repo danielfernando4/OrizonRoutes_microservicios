@@ -1,8 +1,15 @@
+import logging
+
 from fastapi import FastAPI
 from prometheus_fastapi_instrumentator import Instrumentator
 from prometheus_fastapi_instrumentator import routing as pfi_routing
 from .database import Base, engine
 from .routers import vehicles, trips
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
 
 
 _original_get_route_name = pfi_routing._get_route_name

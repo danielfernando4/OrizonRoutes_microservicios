@@ -2,6 +2,7 @@ import pytest
 from bson import ObjectId
 
 from app.services.chat_service import ChatService, message_to_out
+from .conftest import _AsyncCursor
 
 
 @pytest.mark.asyncio
@@ -55,6 +56,40 @@ async def test_get_history_returns_items_and_total(mock_db, trip_id, mock_messag
 
     assert total == len(mock_messages)
     assert len(items) == len(mock_messages)
+
+
+@pytest.mark.asyncio
+async def test_get_rooms_for_trips_returns_matching_rooms(mock_db, trip_id, mock_rooms):
+    service = ChatService(mock_db)
+    trip_ids = [trip_id, "other-trip"]
+    rooms = await service.get_rooms_for_trips(trip_ids)
+
+    mock_db.rooms_collection.find.assert_called_once_with(
+        {"trip_id": {"$in": trip_ids}}
+    )
+    assert len(rooms) == len(mock_rooms)
+    assert rooms[0]["trip_id"] == trip_id
+    assert "passenger_id" in rooms[0]
+
+
+@pytest.mark.asyncio
+async def test_get_rooms_for_passenger_returns_matching_rooms(mock_db, mock_rooms):
+    service = ChatService(mock_db)
+    rooms = await service.get_rooms_for_passenger("passenger-1")
+
+    mock_db.rooms_collection.find.assert_called_once_with(
+        {"passenger_id": "passenger-1"}
+    )
+    assert len(rooms) == len(mock_rooms)
+
+
+@pytest.mark.asyncio
+async def test_get_rooms_for_trips_empty_list_returns_empty(mock_db):
+    mock_db.rooms_collection.find.return_value = _AsyncCursor([])
+    service = ChatService(mock_db)
+    rooms = await service.get_rooms_for_trips([])
+
+    assert rooms == []
 
 
 def test_message_to_out_serializes_object_id():

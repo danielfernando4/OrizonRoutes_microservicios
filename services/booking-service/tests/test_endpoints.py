@@ -117,6 +117,50 @@ class TestReserveEndpoint:
         response = conductor_auth_client.post(self.ENDPOINT, json=payload)
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
+    def test_reserve_reuses_existing_pending(
+        self, auth_client, mock_catalog_client, mock_paypal_client, db_session, mock_trip_data, passenger_id
+    ):
+        reservation_id = uuid.uuid4()
+        added_objects = []
+
+        def add_side_effect(obj):
+            added_objects.append(obj)
+            if hasattr(obj, 'id') and obj.id is None:
+                obj.id = reservation_id
+
+        db_session.add = MagicMock(side_effect=add_side_effect)
+        db_session.flush = AsyncMock()
+
+        async def execute_side_effect(*args, **kwargs):
+            result = MagicMock()
+            mock_reservation = MagicMock()
+            mock_reservation.id = reservation_id
+            mock_reservation.trip_id = mock_trip_data["id"]
+            mock_reservation.passenger_id = passenger_id
+            mock_reservation.seats_reserved = 2
+            mock_reservation.total_price = 50.0
+            mock_reservation.status = "PENDING"
+            result.scalar_one_or_none = MagicMock(return_value=mock_reservation)
+            return result
+
+        db_session.execute = AsyncMock(side_effect=execute_side_effect)
+
+        app.dependency_overrides[get_db] = lambda: db_session
+
+        with (
+            patch("app.routers.reservations.catalog_client", mock_catalog_client),
+            patch("app.routers.reservations.paypal_client", mock_paypal_client),
+        ):
+            payload = {"trip_id": mock_trip_data["id"], "seats_requested": 2}
+            response = auth_client.post(self.ENDPOINT, json=payload)
+
+            assert response.status_code == status.HTTP_201_CREATED
+            data = response.json()
+            assert data["status"] == "PENDING"
+            assert data["reservation_id"] == str(reservation_id)
+            assert data["approval_url"] == "https://paypal.com/approve/ORDER123"
+            assert len(added_objects) == 1
+
 
 class TestConfirmPaymentEndpoint:
     ENDPOINT = "/api/booking/confirm-payment"

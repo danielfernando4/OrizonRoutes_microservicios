@@ -36,17 +36,21 @@ export default function PaymentSuccessPage() {
       return;
     }
 
+    let active = true;
+
     const confirmPayment = async () => {
       try {
         const response = await api.post('/api/booking/confirm-payment', {
           paypal_order_id: token,
         });
+        if (!active) return;
         const data = response.data;
         sessionStorage.setItem('paymentResult', JSON.stringify(data));
         setResult(data);
         setStatus('success');
         toast.success('¡Pago confirmado exitosamente!');
       } catch (err: any) {
+        if (!active) return;
         const msg = err.response?.data?.detail || 'Error al confirmar el pago';
         setErrorMsg(msg);
         setStatus('error');
@@ -54,6 +58,8 @@ export default function PaymentSuccessPage() {
     };
 
     confirmPayment();
+
+    return () => { active = false; };
   }, [searchParams]);
 
   const handleGoToReservations = () => {

@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, User as UserIcon, Map, LogIn, CalendarClock, Search, PlusCircle, Car } from 'lucide-react';
+import { LogOut, User as UserIcon, Map, LogIn, CalendarClock, Search, PlusCircle, Car, Navigation, MessageCircle } from 'lucide-react';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -49,6 +49,14 @@ export default function Navbar() {
                       <Car className="w-4 h-4" />
                       <span className="hidden sm:inline">Mis Vehículos</span>
                     </Link>
+                    <Link
+                      to="/my-trips"
+                      className="flex items-center space-x-1.5 text-foreground/70 hover:text-primary transition-colors text-sm font-medium"
+                      title="Mis Viajes"
+                    >
+                      <Navigation className="w-4 h-4" />
+                      <span className="hidden sm:inline">Mis Viajes</span>
+                    </Link>
                   </>
                 )}
                 {user.role === 'pasajero' && (
@@ -61,6 +69,14 @@ export default function Navbar() {
                     <span className="hidden sm:inline">Mis Reservas</span>
                   </Link>
                 )}
+                <Link
+                  to="/chat"
+                  className="flex items-center space-x-1.5 text-foreground/70 hover:text-primary transition-colors text-sm font-medium"
+                  title="Mis Chats"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  <span className="hidden sm:inline">Chats</span>
+                </Link>
                 <div className="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-white/50 border border-white/40">
                   <UserIcon className="w-4 h-4 text-primary" />
                   <span className="text-sm font-medium text-foreground">{user.name}</span>

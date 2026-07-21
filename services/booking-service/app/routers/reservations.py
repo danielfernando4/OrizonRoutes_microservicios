@@ -1,5 +1,6 @@
 import logging
 import uuid
+import zlib
 from decimal import Decimal
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -52,6 +53,23 @@ async def create_reservation(
         raise HTTPException(404, "Viaje no encontrado")
     if trip.get("status") != "active":
         raise HTTPException(400, "El viaje no está activo")
+
+    lock_key = zlib.crc32(f"reserve:{payload.trip_id}:{current_user['id']}".encode("utf-8"))
+    await db.execute(select(func.pg_advisory_xact_lock(lock_key)))
+
+    existing = await db.execute(
+        select(Reserva).where(
+            Reserva.trip_id == payload.trip_id,
+            Reserva.passenger_id == current_user["id"],
+            Reserva.status == "PENDING",
+        ).with_for_update()
+    )
+    existing_reservation = existing.scalar_one_or_none()
+    if existing_reservation:
+        return await _reuse_reservation(
+            existing_reservation, db, current_user
+        )
+
     if trip.get("available_seats", 0) < payload.seats_requested:
         raise HTTPException(
             400,
@@ -104,6 +122,41 @@ async def create_reservation(
     )
 
 
+async def _reuse_reservation(
+    reservation: Reserva,
+    db: AsyncSession,
+    current_user: dict,
+) -> ReserveResponse:
+    try:
+        order_id, approval_link = await paypal_client.create_order(
+            value=Decimal(str(reservation.total_price)),
+            return_url=settings.PAYPAL_RETURN_URL,
+            cancel_url=settings.PAYPAL_CANCEL_URL,
+        )
+    except Exception as e:
+        raise HTTPException(502, f"Error al conectar con PayPal: {e}") from e
+
+    # Lock the reservation row and verify it's still PENDING
+    await db.refresh(reservation, with_for_update=True)
+    if reservation.status != "PENDING":
+        raise HTTPException(400, "La reserva ya no está pendiente")
+
+    transaccion = TransaccionPago(
+        reserva_id=reservation.id,
+        paypal_order_id=order_id,
+        amount=reservation.total_price,
+        status="CREATED",
+    )
+    db.add(transaccion)
+    await db.commit()
+
+    return ReserveResponse(
+        reservation_id=reservation.id,
+        status="PENDING",
+        approval_url=approval_link,
+    )
+
+
 @router.post("/confirm-payment", response_model=ConfirmPaymentResponse)
 async def confirm_payment(
     payload: ConfirmPaymentRequest,
@@ -123,13 +176,22 @@ async def confirm_payment(
         select(Reserva).where(
             Reserva.id == transaccion.reserva_id,
             Reserva.passenger_id == current_user["id"],
-        )
+        ).with_for_update()
     )
     reservation = result.scalar_one_or_none()
     if not reservation:
         raise HTTPException(404, "Reserva no encontrada")
 
     if reservation.status != "PENDING":
+        if reservation.status == "PAID":
+            return ConfirmPaymentResponse(
+                reservation_id=reservation.id,
+                status=reservation.status,
+                reservation_code=reservation.reservation_code,
+                total_price=reservation.total_price,
+                seats_reserved=reservation.seats_reserved,
+                trip_id=reservation.trip_id,
+            )
         raise HTTPException(400, "La reserva no está pendiente")
 
     try:
@@ -138,6 +200,9 @@ async def confirm_payment(
         )
     except Exception as e:
         logger.error(f"PayPal capture failed: {e}")
+        await db.refresh(reservation)
+        if reservation.status != "PENDING":
+            raise HTTPException(400, "La reserva ya fue procesada por otro request")
         transaccion.status = "FAILED"
         reservation.status = "CANCELLED"
         await catalog_client.release_held_seats(
@@ -218,7 +283,7 @@ async def get_my_reservations(
             trip_id=res.trip_id,
             origin=trip.get("origin") if trip else None,
             destination=trip.get("destination") if trip else None,
-            departure_datetime=trip.get("departure_datetime") if trip else None,
+            departure_datetime=trip.get("departure_time") if trip else None,
             seats_reserved=res.seats_reserved,
             total_price=res.total_price,
             status=res.status,
@@ -264,7 +329,7 @@ async def get_reservation_detail(
         trip_id=reservation.trip_id,
         origin=trip.get("origin") if trip else None,
         destination=trip.get("destination") if trip else None,
-        departure_datetime=trip.get("departure_datetime") if trip else None,
+        departure_datetime=trip.get("departure_time") if trip else None,
         seats_reserved=reservation.seats_reserved,
         total_price=reservation.total_price,
         status=reservation.status,

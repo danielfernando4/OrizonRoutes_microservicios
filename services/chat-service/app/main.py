@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 
@@ -30,7 +31,19 @@ logging.basicConfig(
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
-    get_client()  # abre la conexión a Mongo al arrancar
+    client = get_client()
+    db = client[settings.MONGO_DB_NAME]
+    try:
+        await asyncio.wait_for(
+            db.salas.create_index(
+                [("trip_id", 1), ("passenger_id", 1)],
+                unique=True,
+                background=True,
+            ),
+            timeout=3.0,
+        )
+    except Exception:
+        logging.warning("No se pudo crear el índice único en salas (posibles duplicados existentes)")
     yield
     close_db_connection()
 

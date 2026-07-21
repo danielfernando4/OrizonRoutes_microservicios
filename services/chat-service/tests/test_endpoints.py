@@ -51,3 +51,33 @@ class TestHistoryEndpoint:
             params={"page_size": 999},
         )
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+
+class TestListRoomsEndpoint:
+    def test_list_rooms_requires_auth(self, client, trip_id):
+        response = client.get("/api/chat/rooms")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_list_rooms_as_passenger_returns_rooms(self, auth_client, trip_id, mock_rooms):
+        response = auth_client.get("/api/chat/rooms")
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert len(data) == len(mock_rooms)
+        assert data[0]["trip_id"] == trip_id
+        assert "passenger_id" in data[0]
+
+    def test_list_rooms_filtered_by_trip_ids(self, auth_client, trip_id, mock_rooms):
+        response = auth_client.get(
+            "/api/chat/rooms",
+            params={"trip_ids": f"{trip_id},other-trip-id"},
+        )
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert len(data) == len(mock_rooms)
+
+    def test_list_rooms_empty_trip_ids_uses_passenger_filter(self, auth_client):
+        response = auth_client.get(
+            "/api/chat/rooms",
+            params={"trip_ids": ""},
+        )
+        assert response.status_code == status.HTTP_200_OK
