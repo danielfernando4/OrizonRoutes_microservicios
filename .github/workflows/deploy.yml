@@ -1,0 +1,51 @@
+name: Continuous Deployment (EC2)
+
+on:
+  push:
+    branches:
+      - main
+  # Permite ejecutar el workflow manualmente desde la interfaz de GitHub
+  workflow_dispatch:
+
+jobs:
+  # 1. Fase de Integración Continua (CI)
+  ci_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Obtener el código
+        uses: actions/checkout@v3
+
+      - name: Ejecutar pruebas y validaciones (Simulado)
+        run: |
+          echo "Aquí correrías pytest, flake8, npm run test, etc."
+          echo "Simulando que todos los tests pasaron exitosamente..."
+          sleep 2
+          echo "¡CI Aprobado!"
+
+  # 2. Fase de Despliegue Continuo (CD)
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [ci_tests] # <- ESTA ES LA MAGIA: El deploy espera a que CI termine exitosamente
+
+    steps:
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            echo "Conectando al servidor EC2..."
+            
+            # Navegar al directorio del proyecto
+            # Se asume que el repositorio fue clonado previamente en la carpeta OrizonRoutes_microservicios
+            cd ~/OrizonRoutes_microservicios
+            
+            echo "Obteniendo los últimos cambios de la rama main..."
+            git pull origin main
+            
+            echo "Reconstruyendo y reiniciando contenedores..."
+            docker-compose down
+            docker-compose up -d --build
+            
+            echo "¡Despliegue completado con éxito!"
