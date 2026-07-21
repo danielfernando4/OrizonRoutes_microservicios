@@ -11,5 +11,6 @@ export default defineConfig({
     host: true, // Needed for docker
     strictPort: true,
     port: 15173,
+    allowedHosts: true, // Permite conexiones desde cualquier DNS/IP (como EC2)
   }
 })
