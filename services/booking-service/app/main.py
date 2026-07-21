@@ -2,10 +2,26 @@ import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from prometheus_fastapi_instrumentator import Instrumentator
+from prometheus_fastapi_instrumentator import routing as pfi_routing
 
 from app.config import settings
 from app.database import init_db
 from app.routers import payments, reservations
+
+# Monkeypatch: prometheus-fastapi-instrumentator no maneja _IncludedRouter
+# (FastAPI >=0.115). Si falla al obtener route_name, retorna "unknown".
+_original_get_route_name = pfi_routing._get_route_name
+
+
+def _safe_get_route_name(scope, routes):
+    try:
+        return _original_get_route_name(scope, routes)
+    except AttributeError:
+        return "unknown"
+
+
+pfi_routing._get_route_name = _safe_get_route_name
 
 logging.basicConfig(
     level=logging.INFO if not settings.DEBUG else logging.DEBUG,
@@ -29,6 +45,8 @@ app = FastAPI(
 
 app.include_router(reservations.router)
 app.include_router(payments.router)
+
+Instrumentator().instrument(app).expose(app)
 
 
 @app.get("/health")

@@ -89,10 +89,11 @@ class TestReserveResponse:
         data = {
             "reservation_id": str(uuid.uuid4()),
             "status": "PENDING",
-            "paypal_approval_link": "https://paypal.com/approve/123",
+            "approval_url": "https://paypal.com/approve/123",
         }
         resp = ReserveResponse(**data)
         assert resp.status == "PENDING"
+        assert resp.approval_url == "https://paypal.com/approve/123"
 
 
 class TestConfirmPaymentResponse:

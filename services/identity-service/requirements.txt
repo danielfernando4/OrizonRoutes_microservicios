@@ -10,3 +10,4 @@ pytest
 httpx
 ruff
 python-dotenv
+prometheus-fastapi-instrumentator

@@ -117,9 +117,60 @@ services:
       - frontend
     restart: unless-stopped
 
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    ports:
+      - "15090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.1.0
+    ports:
+      - "15091:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - grafana_data:/var/lib/grafana
+    restart: unless-stopped
+
+  loki:
+    image: grafana/loki:3.0.0
+    ports:
+      - "15092:3100"
+    volumes:
+      - ./monitoring/loki/loki-config.yml:/etc/loki/loki-config.yml
+      - loki_data:/loki
+    command:
+      - "-config.file=/etc/loki/loki-config.yml"
+    restart: unless-stopped
+
+  promtail:
+    image: grafana/promtail:3.0.0
+    volumes:
+      - ./monitoring/promtail/promtail-config.yml:/etc/promtail/promtail-config.yml
+      - /var/log:/var/log:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    command:
+      - "-config.file=/etc/promtail/promtail-config.yml"
+    depends_on:
+      - loki
+    restart: unless-stopped
+
 volumes:
   identity_data:
   catalog_data:
   frontend_node_modules:
   db_booking_data:
   mongo_chat_data:
+  prometheus_data:
+  grafana_data:
+  loki_data:

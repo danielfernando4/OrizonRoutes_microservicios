@@ -8,7 +8,7 @@ from ..services.osrm import calculate_distance_and_duration
 from typing import List, Optional
 
 from pydantic import BaseModel
-from ..dependencies import authenticated, conductor_required
+from ..dependencies import conductor_required
 
 class SeatsUpdate(BaseModel):
     seats: int = None

@@ -2,11 +2,25 @@ import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from prometheus_fastapi_instrumentator import Instrumentator
+from prometheus_fastapi_instrumentator import routing as pfi_routing
 
 from app.config import settings
 from app.database import close_db_connection, get_client
 from app.routers import chat
 from app.websocket import chat_ws
+
+_original_get_route_name = pfi_routing._get_route_name
+
+
+def _safe_get_route_name(scope, routes):
+    try:
+        return _original_get_route_name(scope, routes)
+    except AttributeError:
+        return "unknown"
+
+
+pfi_routing._get_route_name = _safe_get_route_name
 
 logging.basicConfig(
     level=logging.INFO if not settings.DEBUG else logging.DEBUG,
@@ -31,6 +45,8 @@ app = FastAPI(
 
 app.include_router(chat.router)
 app.include_router(chat_ws.router)
+
+Instrumentator().instrument(app).expose(app)
 
 
 @app.get("/health")

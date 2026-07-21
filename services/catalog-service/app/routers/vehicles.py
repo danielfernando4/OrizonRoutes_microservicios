@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from ..database import get_db
+from ..dependencies import authenticated, conductor_required
 from ..models.vehicle import Vehicle
 from ..schemas.vehicle import VehicleCreate, VehicleOut
 
@@ -8,8 +9,6 @@ router = APIRouter()
 
 # En un entorno real, aquí inyectaríamos una dependencia get_current_user que verifique el JWT
 # Para esta implementación, asumiremos que el driver_id viene en los headers o cuerpo (mocked middleware)
-
-from ..dependencies import authenticated, conductor_required
 
 @router.post("/", response_model=VehicleOut, status_code=status.HTTP_201_CREATED)
 def create_vehicle(vehicle: VehicleCreate, current_user: dict = Depends(conductor_required), db: Session = Depends(get_db)):

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/axiosConfig';
-import { MapPin, Calendar, Clock, DollarSign, Send, Loader2 } from 'lucide-react';
+import { MapPin, Calendar, DollarSign, Send, Loader2 } from 'lucide-react';
 
 export default function PublishTripPage() {
   const navigate = useNavigate();

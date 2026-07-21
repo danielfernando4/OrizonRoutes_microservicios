@@ -45,7 +45,7 @@ class TestReserveEndpoint:
         assert response.status_code == status.HTTP_201_CREATED
         data = response.json()
         assert data["status"] == "PENDING"
-        assert "paypal_approval_link" in data
+        assert "approval_url" in data
         assert "reservation_id" in data
 
     def test_reserve_unavailable_seats(self, auth_client, mock_catalog_client, mock_trip_data):
