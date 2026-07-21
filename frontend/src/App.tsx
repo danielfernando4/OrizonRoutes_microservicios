@@ -13,11 +13,15 @@ import PublishTripPage from './pages/trips/PublishTripPage';
 import MyVehiclesPage from './pages/trips/MyVehiclesPage';
 import TripDetailPage from './pages/trips/TripDetailPage';
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
+/*function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   if (loading) return <div className="min-h-screen flex items-center justify-center">Cargando...</div>;
   if (!user) return <Navigate to="/login" replace />;
   return <>{children}</>;
+}*/
+
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  return <>{children}</>; // bypass temporal, revertir después
 }
 
 
